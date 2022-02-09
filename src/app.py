@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, request, jsonify, url_for, json
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from datastructures import FamilyStructure
@@ -25,10 +25,9 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+#GET a todos los miembros -------------->>>>>>>>>
 @app.route('/members', methods=['GET'])
-def handle_hello():
-
-    # this is how you can use the Family datastructure by calling its methods
+def get_members():
     members = jackson_family.get_all_members()
     response_body = {
         "hello": "world",
@@ -37,6 +36,39 @@ def handle_hello():
 
 
     return jsonify(response_body), 200
+
+    
+
+#POST agregar un miembro a la lista -------------->>>>>>>>>
+@app.route('/member', methods=['POST'])
+def add_member():
+    member = request.json
+    if not member:
+        return jsonify({"message":"You must add a member"}), 400
+    jackson_family.add_member(member)
+    return jsonify({"message":"Successfully added member"}), 200  
+
+
+#GET para traer un. miembro
+@app.route('/member/<int:id>', methods=['GET'])
+def get_member(id):
+    member = jackson_family.get_member(id)
+    if member:
+        return jsonify(member), 200
+    else:
+        return jsonify({"message":"Member does not exist"}), 400   
+
+
+
+#DELETE un miembro
+
+@app.route('/member/<int:id>', methods=['DELETE'])
+def delete_member(id):
+    member = jackson_family.delete_member(id)
+    if not member:
+        return jsonify({"Message":"id does not exist"})
+   
+    return jsonify(member)         
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
